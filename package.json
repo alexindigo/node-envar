@@ -1,0 +1,38 @@
+{
+  "name": "envar",
+  "version": "0.1.0",
+  "description": "Goes as high as enviroment (including npm config) and as low as command line options to find variable you've requested.",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/tap test/*.js"
+  },
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/alexindigo/node-envar.git"
+  },
+  "keywords": [
+    "env",
+    "environment",
+    "argument",
+    "args",
+    "option",
+    "cli",
+    "process",
+    "config",
+    "npm"
+  ],
+  "author": "Alex Indigo <iam@alexindigo.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alexindigo/node-envar/issues"
+  },
+  "dependencies": {
+    "optimist": "~0.6.0"
+  },
+  "devDependencies": {
+    "tap": "~0.4.4"
+  }
+}
