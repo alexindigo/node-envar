@@ -26,6 +26,9 @@ function envar(key)
 {
   var i, value;
 
+  // be extra paranoid
+  if (typeof key != 'string' || !key) return undefined;
+
   // lookup according to the order
   for (i=0; i<state.order.length; i++)
   {
@@ -39,7 +42,7 @@ function envar(key)
   return undefined;
 }
 
-// configuration methods
+// --- configuration methods
 
 // defaults
 envar.defaults = function envar_defaults(defaults)
@@ -73,6 +76,52 @@ envar.order = function envar_order(order)
 
   return state.order;
 }
+
+// --- getters/setters
+
+// defaults
+envar.default = function envar_default(key, value)
+{
+  if (typeof key != 'string' || !key) return undefined;
+
+  if (value !== undefined)
+  {
+    state.defaults[key] = value;
+  }
+
+  return state.defaults[key];
+}
+
+// environment variables
+envar.env = function envar_env(key, value)
+{
+  if (typeof key != 'string' || !key) return undefined;
+
+  if (value !== undefined)
+  {
+    process.env[state.prefix+key] = value;
+  }
+
+  return process.env[state.prefix+key];
+}
+
+// (readonly) npm package config
+envar.npm = function envar_npm(key)
+{
+  if (typeof key != 'string' || !key) return undefined;
+
+  return process.env['npm_package_config_'+key];
+}
+
+
+// (readonly) argv/cli options
+envar.arg = function envar_arg(key)
+{
+  if (typeof key != 'string' || !key) return undefined;
+
+  return argv[key];
+}
+
 
 // --- private
 
