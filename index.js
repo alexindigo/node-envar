@@ -1,10 +1,18 @@
-var argv = require('optimist').argv
+var fs   = require('fs')
+  , path = require('path')
+
+  // third-party
+  , argv  = require('optimist').argv
+  , clone = require('deeply')
 
   // state
   , state =
     {
       // default values
       defaults: {},
+
+      // config variables
+      config: {},
 
       // prefix for environment variables
       prefix: '',
@@ -13,8 +21,9 @@ var argv = require('optimist').argv
       // A - argv/cli options
       // E - environment variables
       // N - npm package config
+      // C – config imported from external json file
       // D - default values
-      order: 'AEND'
+      order: 'AENCD'
     }
   ;
 
@@ -44,12 +53,44 @@ function envar(key)
 
 // --- configuration methods
 
+// (synchronous) import config variables
+envar.import = function envar_import(config)
+{
+  var filename;
+
+  // check if it's real object,
+  // means it was preloaded from file or by other means :)
+  // store right away
+  if (Object.prototype.toString.call(config) == '[object Object]')
+  {
+    // make it untangled
+    state.config = clone(config);
+    // done here
+    return state.config;
+  }
+
+  // otherwise it supposed to be a string
+  if (typeof config != 'string') return false;
+
+  // check for absolute path
+  filename = config[0] == '/' ? config : path.join(process.cwd(), config);
+
+  if (!fs.existsSync(filename)) return false;
+
+  // it's ok to just throw here,
+  // it supposed to be used in sync way before services start
+  state.config = JSON.parse(fs.readFileSync(filename, {encoding: 'utf8'}));
+
+  return state.config;
+}
+
 // defaults
 envar.defaults = function envar_defaults(defaults)
 {
-  if (typeof defaults == 'object')
+  if (Object.prototype.toString.call(defaults) == '[object Object]')
   {
-    state.defaults = defaults;
+    // make it untangled
+    state.defaults = clone(defaults);
   }
 
   return state.defaults;
@@ -105,6 +146,14 @@ envar.env = function envar_env(key, value)
   return process.env[state.prefix+key];
 }
 
+// (readonly) config variables
+envar.config = function envar_config(key)
+{
+  if (typeof key != 'string' || !key) return undefined;
+
+  return state.config[key];
+}
+
 // (readonly) npm package config
 envar.npm = function envar_npm(key)
 {
@@ -130,26 +179,17 @@ envar.arg = function envar_arg(key)
 var lookup =
 {
   // defaults
-  D: function envar_lookup_defaults(key)
-  {
-    return state.defaults[key];
-  },
+  D: envar.default,
+
+  // config
+  C: envar.config,
 
   // npm package config
-  N: function envar_lookup_npmPackageConfig(key)
-  {
-    return process.env['npm_package_config_'+key];
-  },
+  N: envar.npm,
 
   // environment variables
-  E: function envar_lookup_env(key)
-  {
-    return process.env[state.prefix+key];
-  },
+  E: envar.env,
 
   // argv/cli options
-  A: function envar_lookup_argv(key)
-  {
-    return argv[key];
-  }
+  A: envar.arg
 }

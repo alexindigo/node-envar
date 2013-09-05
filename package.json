@@ -4,7 +4,7 @@
   "description": "Goes as high as enviroment (including npm config) and as low as command line options to find variable you've requested.",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/tap test/*.js"
+    "test": "node ./test --test ok"
   },
   "engines": {
     "node": ">= 0.8.0"
@@ -30,7 +30,8 @@
     "url": "https://github.com/alexindigo/node-envar/issues"
   },
   "dependencies": {
-    "optimist": "~0.6.0"
+    "optimist": "~0.6.0",
+    "deeply": "~0.1.0"
   },
   "devDependencies": {
     "tap": "~0.4.4"
