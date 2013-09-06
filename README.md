@@ -1,4 +1,4 @@
-# EnVar
+# EnVar [![Build Status](https://travis-ci.org/alexindigo/node-envar.png?branch=master)](https://travis-ci.org/alexindigo/node-envar) [![Dependency Status](https://gemnasium.com/alexindigo/node-envar.png)](https://gemnasium.com/alexindigo/node-envar)
 
 Goes as high as environment (including npm config) and as low as command line options to find variable you've requested.
 
