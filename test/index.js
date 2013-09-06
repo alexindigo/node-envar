@@ -37,7 +37,7 @@ test('env', function test_envar_env(t)
   process.env[fix.name] = fix.value;
 
   // check it's in the stack
-  t.equal(envar(fix.name), fix.value, 'Enviroment has '+fix.name+' variable.');
+  t.equal(envar(fix.name), fix.value, 'Environment has '+fix.name+' variable.');
 
   // check for non-existent
   t.equal(envar(nonExistent), undefined, 'Should return undefined if no key found.');
@@ -184,7 +184,7 @@ test('prefix', function test_envar_prefix(t)
   envar.prefix(prefix);
 
   // check it's in the stack
-  t.equal(envar(fix.name), fix.value, 'Enviroment has '+fix.name+' variable with prefix '+prefix+'.');
+  t.equal(envar(fix.name), fix.value, 'Environment has '+fix.name+' variable with prefix '+prefix+'.');
 
   // check for non-existent
   t.equal(envar(nonExistent), undefined, 'Should return undefined if no key found.');
@@ -250,7 +250,7 @@ test('order', function test_envar_order(t)
   var fix =
       {
         // defaults
-        D: {name: 'test_defaults', value: 'ok'},
+        D: {name: 'test_default', value: 'ok'},
 
         // config
         C: {name: 'test_config', value: 'ok'},
@@ -264,10 +264,15 @@ test('order', function test_envar_order(t)
         // argv/cli options
         A: {name: 'test', value: 'ok'} // real cli option
       }
+    // list of layers
+    , layers = Object.keys(fix)
+    // store expected results here
+    , expected = {}
+    , defaultOrder = envar.order()
     ;
 
   // check the hat before the trick
-  Object.keys(fix).forEach(function test_envar_order_precheck(layer)
+  layers.forEach(function test_envar_order_precheck(layer)
   {
     // argv is real and always here
     if (layer != 'A')
@@ -276,5 +281,107 @@ test('order', function test_envar_order(t)
     }
   });
 
+  // populate layers
+  layers.forEach(function test_envar_order_populate(layer, index)
+  {
+    var i, method;
+
+    for (i=0; i<=index; i++)
+    {
+      // use layer specific methods to populate each layer
+      // argv can't be populated, so just skip it
+      if ((method = fix[layers[i]].name.match(/^test_(\w+)$/)) && (method = method[1]))
+      {
+        envar[method](fix[layer].name, fix[layer].value+'-'+layers[i]);
+
+        // populate expected value
+        if (!expected[fix[layer].name]) expected[fix[layer].name] = {};
+        // name -> layer * value
+        expected[fix[layer].name][layers[i]] = fix[layer].value+'-'+layers[i];
+      }
+    }
+  });
+
+  // add argv element manually
+  expected.test['A'] = 'ok';
+
+  // check default order
+  defaultOrder.split('').forEach(function(layer)
+  {
+    // no suffix for cli option
+    t.equal(envar(fix[layer].name), fix[layer].value+(layer != 'A' ? '-'+layer : ''), 'Checked "'+layer+'" layer.');
+  });
+
+  combinations(layers, [], function(comb)
+  {
+    // change order
+    envar.order(comb);
+
+    // check new world order
+    Object.keys(expected).forEach(function(variable)
+    {
+      var i;
+      // go down the order seq
+      // and find first available layer
+      for (i=0; i<comb.length; i++)
+      {
+        if ( expected[variable][comb[i]] )
+        {
+          // found matching top-layer/populated value
+          t.equal(envar(variable), expected[variable][comb[i]], 'Checked '+variable+' with '+comb+' order, fetched '+envar(variable)+' expected '+expected[variable][comb[i]]+'.');
+          return;
+        }
+      }
+    });
+  });
+
+  // put toys were they belong
+  envar.order(defaultOrder);
+
+  // --- subroutines
+
+  function combinations(list, set, callback, memo)
+  {
+    var i, newList, word;
+    set = set || [];
+    memo = memo || [];
+
+    for (i=0; i<list.length; i++)
+    {
+      // create untangled list containing other elements
+      (newList = list.concat()).splice(i, 1);
+
+      // last level
+      if (newList.length == 1)
+      {
+        word = set.concat(list[i]).join('')+newList[0];
+
+        // check if it's something new
+        if (memo.indexOf(word) == -1)
+        {
+          memo.push(word);
+          // give it back
+          callback(word);
+        }
+
+        // smallest reduced set
+        if (memo.indexOf(newList[0]) == -1)
+        {
+          memo.push(newList[0]);
+          callback(newList[0]);
+        }
+      }
+      else
+      {
+        // check subsets
+        combinations(newList, set.concat(list[i]), callback, memo);
+
+        // and spawn search for reduced set combinations
+        combinations(newList, [], callback, memo);
+      }
+    }
+  }
+
+  // done here
   t.end();
 });

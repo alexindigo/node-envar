@@ -1,7 +1,7 @@
 {
   "name": "envar",
-  "version": "0.1.0",
-  "description": "Goes as high as enviroment (including npm config) and as low as command line options to find variable you've requested.",
+  "version": "1.0.0",
+  "description": "Goes as high as environment (including npm config) and as low as command line options to find variable you've requested.",
   "main": "index.js",
   "scripts": {
     "test": "node ./test --test ok"

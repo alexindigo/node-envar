@@ -133,6 +133,32 @@ envar.default = function envar_default(key, value)
   return state.defaults[key];
 }
 
+// config variables
+envar.config = function envar_config(key, value)
+{
+  if (typeof key != 'string' || !key) return undefined;
+
+  if (value !== undefined)
+  {
+    state.config[key] = value;
+  }
+
+  return state.config[key];
+}
+
+// npm package config
+envar.npm = function envar_npm(key, value)
+{
+  if (typeof key != 'string' || !key) return undefined;
+
+  if (value !== undefined)
+  {
+    process.env['npm_package_config_'+key] = value;
+  }
+
+  return process.env['npm_package_config_'+key];
+}
+
 // environment variables
 envar.env = function envar_env(key, value)
 {
@@ -145,23 +171,6 @@ envar.env = function envar_env(key, value)
 
   return process.env[state.prefix+key];
 }
-
-// (readonly) config variables
-envar.config = function envar_config(key)
-{
-  if (typeof key != 'string' || !key) return undefined;
-
-  return state.config[key];
-}
-
-// (readonly) npm package config
-envar.npm = function envar_npm(key)
-{
-  if (typeof key != 'string' || !key) return undefined;
-
-  return process.env['npm_package_config_'+key];
-}
-
 
 // (readonly) argv/cli options
 envar.arg = function envar_arg(key)
