@@ -1,13 +1,20 @@
 {
   "name": "envar",
-  "version": "1.0.0",
-  "description": "Goes as high as environment (including npm config) and as low as command line options to find variable you've requested.",
+  "version": "2.0.0",
+  "description": "Library to read environment variables, including npm package config, custom config file, command line and default object",
   "main": "index.js",
   "scripts": {
-    "test": "node ./test --test ok"
+    "lint": "eslint index.js",
+    "debug": "node test.js --test ok",
+    "test": "istanbul cover test.js -- --test ok",
+    "posttest": "istanbul check-coverage"
   },
+  "pre-commit": [
+    "lint",
+    "test"
+  ],
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 0.10"
   },
   "repository": {
     "type": "git",
@@ -20,9 +27,12 @@
     "args",
     "option",
     "cli",
+    "command line",
     "process",
     "config",
-    "npm"
+    "npm",
+    "package",
+    "default"
   ],
   "author": "Alex Indigo <iam@alexindigo.com>",
   "license": "MIT",
@@ -30,10 +40,15 @@
     "url": "https://github.com/alexindigo/node-envar/issues"
   },
   "dependencies": {
-    "optimist": "~0.6.0",
-    "deeply": "~0.1.0"
+    "deeply": "^1.0.0",
+    "minimist": "^1.2.0"
   },
   "devDependencies": {
-    "tap": "~0.4.4"
+    "codecov": "^1.0.1",
+    "coveralls": "^2.11.6",
+    "eslint": "^1.10.3",
+    "istanbul": "^0.4.2",
+    "pre-commit": "^1.1.2",
+    "tap": "^5.4.2"
   }
 }

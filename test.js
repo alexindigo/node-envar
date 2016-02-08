@@ -1,7 +1,7 @@
-var test  = require('tap').test
-  , envar = require('../')
-
-  , nonExistent = 'undefined';
+var path  = require('path')
+  , test  = require('tap').test
+  , envar = require('./')
+  , nonExistent = 'undefined'
   ;
 
 // argv/cli layer, call test with --test ok argument
@@ -24,6 +24,21 @@ test('argv', function test_envar_argv(t)
 
   t.end();
 });
+
+// returns undefined for non existent values
+test('non existent keys', function test_envar_non_existent_values(t)
+{
+  t.equal(envar(), undefined, 'No key provided.');
+
+  t.equal(envar.arg(), undefined, 'No key provided in argv layer.');
+  t.equal(envar.env(), undefined, 'No key provided in env layer.');
+  t.equal(envar.npm(), undefined, 'No key provided in npm layer.');
+  t.equal(envar.config(), undefined, 'No key provided in config layer.');
+  t.equal(envar.default(), undefined, 'No key provided in defaults layer.');
+
+  t.end();
+});
+
 
 // environment variables layer
 test('env', function test_envar_env(t)
@@ -96,15 +111,23 @@ test('config', function test_envar_config(t)
 {
   // use package.json as test json file
   // package name should be pretty consistent
-  var fix = {name: 'name', value: 'envar'};
+  var response, fix = {name: 'name', value: 'envar'};
 
   // pre-check – doesn't exists in the stack
   t.equal(envar(fix.name), undefined, 'Make sure stack has no noise');
 
-  // import config
-  envar.import('package.json');
+  // non existent path
+  response = envar.import('no-such-file.json');
+  t.equal(response, false, 'false returned for non-existent path');
 
-  // check it's in the stack
+  // absolute path
+  response = envar.import(path.join(__dirname, 'node_modules/deeply', 'package.json'));
+  t.notEqual(response, false, 'Non-false value returned');
+  t.equal(envar('name'), 'deeply', 'Config has been loaded and deeply/package.json contains top level variable "deeply".');
+
+  // import config
+  response = envar.import('package.json');
+  t.notEqual(response, false, 'Non-false value returned');
   t.equal(envar(fix.name), fix.value, 'Config has been loaded and package.json contains top level variable "'+fix.name+'".');
 
   // check for non-existent
@@ -131,6 +154,7 @@ test('defaults', function test_envar_defaults(t)
 {
   var fix      = {name: 'default_var', value: 'ok'}
     , defaults = {}
+    , response
     ;
 
   // pre-check – doesn't exists in the stack
@@ -140,6 +164,11 @@ test('defaults', function test_envar_defaults(t)
   defaults[fix.name] = fix.value;
 
   envar.defaults(defaults);
+
+  // won't throw with no arguments
+  // will return current state
+  response = envar.defaults();
+  t.deepEqual(response, defaults, 'Returned copy of the defaults object provided before');
 
   // check it's in the stack
   t.equal(envar(fix.name), fix.value, 'Defaults has '+fix.name+' variable.');
@@ -163,11 +192,57 @@ test('defaults', function test_envar_defaults(t)
   t.end();
 });
 
+// allows to set values to `undefined`
+test('set to undefined', function test_envar_set_to_undefined(t)
+{
+  var fix = {name: 'test_var_' + Math.random(), value: 'test_value_' + Math.random()};
+
+  // pre set test variables for each layer
+  t.equal(envar.arg(fix.name, fix.value + '_arg'), fix.value + '_arg', 'Set test var in argv layer.');
+  t.equal(envar.env(fix.name, fix.value + '_env'), fix.value + '_env', 'Set test var in env layer.');
+  t.equal(envar.npm(fix.name, fix.value + '_npm'), fix.value + '_npm', 'Set test var in npm layer.');
+  t.equal(envar.config(fix.name, fix.value + '_config'), fix.value + '_config', 'Set test var in config layer.');
+  t.equal(envar.default(fix.name, fix.value + '_default'), fix.value + '_default', 'Set test var in defaults layer.');
+
+  // expecting default lookup order
+  // A - argv/cli options
+  // E - environment variables
+  // N - npm package config
+  // C – config imported from external json file
+  // D - default values
+
+  // control
+  t.equal(envar(fix.name), fix.value + '_arg', 'Get test var from argv layer.');
+
+  // unset (set to undefined) from arg layer
+  envar.arg(fix.name, undefined);
+  t.equal(envar(fix.name), fix.value + '_env', 'Get test var from env layer.');
+
+  // unset (set to undefined) from env layer
+  envar.env(fix.name, undefined);
+  t.equal(envar(fix.name), fix.value + '_npm', 'Get test var from npm layer.');
+
+  // unset (set to undefined) from npm layer
+  envar.npm(fix.name, undefined);
+  t.equal(envar(fix.name), fix.value + '_config', 'Get test var from config layer.');
+
+  // unset (set to undefined) from config layer
+  envar.config(fix.name, undefined);
+  t.equal(envar(fix.name), fix.value + '_default', 'Get test var from default layer.');
+
+  // unset (set to undefined) from default layer
+  envar.default(fix.name, undefined);
+  t.equal(envar(fix.name), undefined, 'Get undefined test var from all layers.');
+
+  t.end();
+});
+
 // environment variables prefix
 test('prefix', function test_envar_prefix(t)
 {
   var fix    = {name: 'env_var', value: 'ok'}
     , prefix = 'custom_prefix__'
+    , response
     ;
 
   // pre-check – doesn't exists in the stack
@@ -182,6 +257,11 @@ test('prefix', function test_envar_prefix(t)
 
   // setup prefix
   envar.prefix(prefix);
+
+  // won't throw with no arguments
+  // will return current prefix
+  response = envar.prefix();
+  t.equal(response, prefix, 'Returned prefix set before');
 
   // check it's in the stack
   t.equal(envar(fix.name), fix.value, 'Environment has '+fix.name+' variable with prefix '+prefix+'.');
@@ -247,23 +327,22 @@ test('import', function test_envar_import(t)
 test('order', function test_envar_order(t)
 {
   // prepare test data
-  var fix =
-      {
-        // defaults
-        D: {name: 'test_default', value: 'ok'},
+  var fix = {
+      // defaults
+      D: {name: 'test_default', value: 'ok'},
 
-        // config
-        C: {name: 'test_config', value: 'ok'},
+      // config
+      C: {name: 'test_config', value: 'ok'},
 
-        // npm package config
-        N: {name: 'test_npm', value: 'ok'},
+      // npm package config
+      N: {name: 'test_npm', value: 'ok'},
 
-        // environment variables
-        E: {name: 'test_env', value: 'ok'},
+      // environment variables
+      E: {name: 'test_env', value: 'ok'},
 
-        // argv/cli options
-        A: {name: 'test', value: 'ok'} // real cli option
-      }
+      // argv/cli options
+      A: {name: 'test', value: 'ok'} // real cli option
+    }
     // list of layers
     , layers = Object.keys(fix)
     // store expected results here
@@ -340,6 +419,15 @@ test('order', function test_envar_order(t)
 
   // --- subroutines
 
+  /**
+   * Creates combinations of the layers
+   *
+   * @param   {array} list - list of layers to iterate over
+   * @param   {array} set - list of layers to combine with
+   * @param   {function} callback - invoked with final list of possible combinations
+   * @param   {array} memo - list of accumulated combinations
+   * @returns {void}
+   */
   function combinations(list, set, callback, memo)
   {
     var i, newList, word;

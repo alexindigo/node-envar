@@ -2,35 +2,42 @@ var fs   = require('fs')
   , path = require('path')
 
   // third-party
-  , argv  = require('optimist').argv
-  , clone = require('deeply')
+  , argv  = require('minimist')(process.argv.slice(2))
+  , clone = require('deeply/immutable')
+
+  // lookup methods
+  , lookup = {}
 
   // state
-  , state =
-    {
-      // default values
-      defaults: {},
+  , state = {
+    // default values
+    defaults: {},
 
-      // config variables
-      config: {},
+    // config variables
+    config: {},
 
-      // prefix for environment variables
-      prefix: '',
+    // prefix for environment variables
+    prefix: '',
 
-      // variables lookup order
-      // A - argv/cli options
-      // E - environment variables
-      // N - npm package config
-      // C – config imported from external json file
-      // D - default values
-      order: 'AENCD'
-    }
+    // variables lookup order
+    // A - argv/cli options
+    // E - environment variables
+    // N - npm package config
+    // C – config imported from external json file
+    // D - default values
+    order: 'AENCD'
+  }
   ;
 
 // expose function/object
 module.exports = envar;
 
-// lookup variable
+/**
+ * Looks up requested variable
+ *
+ * @param   {string} key - variable name to look for
+ * @returns {mixed} - found variable or `undefined` if nothing found
+ */
 function envar(key)
 {
   var i, value;
@@ -72,8 +79,8 @@ envar.import = function envar_import(config)
   // otherwise it supposed to be a string
   if (typeof config != 'string') return false;
 
-  // check for absolute path
-  filename = config[0] == '/' ? config : path.join(process.cwd(), config);
+  // resolve absolute path
+  filename = path.resolve(process.cwd(), config);
 
   if (!fs.existsSync(filename)) return false;
 
@@ -82,7 +89,7 @@ envar.import = function envar_import(config)
   state.config = JSON.parse(fs.readFileSync(filename, {encoding: 'utf8'}));
 
   return state.config;
-}
+};
 
 // defaults
 envar.defaults = function envar_defaults(defaults)
@@ -94,7 +101,7 @@ envar.defaults = function envar_defaults(defaults)
   }
 
   return state.defaults;
-}
+};
 
 // environment variables prefix
 envar.prefix = function envar_prefix(prefix)
@@ -105,7 +112,7 @@ envar.prefix = function envar_prefix(prefix)
   }
 
   return state.prefix;
-}
+};
 
 // lookup order
 envar.order = function envar_order(order)
@@ -116,7 +123,7 @@ envar.order = function envar_order(order)
   }
 
   return state.order;
-}
+};
 
 // --- getters/setters
 
@@ -125,68 +132,91 @@ envar.default = function envar_default(key, value)
 {
   if (typeof key != 'string' || !key) return undefined;
 
-  if (value !== undefined)
+  // if second argument provided behave as setter
+  if (arguments.length == 2)
   {
     state.defaults[key] = value;
   }
 
   return state.defaults[key];
-}
+};
 
 // config variables
 envar.config = function envar_config(key, value)
 {
   if (typeof key != 'string' || !key) return undefined;
 
-  if (value !== undefined)
+  // if second argument provided behave as setter
+  if (arguments.length == 2)
   {
     state.config[key] = value;
   }
 
   return state.config[key];
-}
+};
 
 // npm package config
 envar.npm = function envar_npm(key, value)
 {
   if (typeof key != 'string' || !key) return undefined;
 
-  if (value !== undefined)
+  // if second argument provided behave as setter
+  if (arguments.length == 2)
   {
-    process.env['npm_package_config_'+key] = value;
+    // process.env converts everything to strings
+    // handle `undefined` as unset action
+    if (value === undefined)
+    {
+      delete process.env['npm_package_config_' + key];
+    }
+    else
+    {
+      process.env['npm_package_config_' + key] = value;
+    }
   }
 
-  return process.env['npm_package_config_'+key];
-}
+  return process.env['npm_package_config_' + key];
+};
 
 // environment variables
 envar.env = function envar_env(key, value)
 {
   if (typeof key != 'string' || !key) return undefined;
 
-  if (value !== undefined)
+  // if second argument provided behave as setter
+  if (arguments.length == 2)
   {
-    process.env[state.prefix+key] = value;
+    // process.env converts everything to strings
+    // handle `undefined` as unset action
+    if (value === undefined)
+    {
+      delete process.env[state.prefix + key];
+    }
+    else
+    {
+      process.env[state.prefix + key] = value;
+    }
   }
 
-  return process.env[state.prefix+key];
-}
+  return process.env[state.prefix + key];
+};
 
-// (readonly) argv/cli options
-envar.arg = function envar_arg(key)
+// argv/cli options
+envar.arg = function envar_arg(key, value)
 {
   if (typeof key != 'string' || !key) return undefined;
 
+  // if second argument provided behave as setter
+  if (arguments.length == 2)
+  {
+    argv[key] = value;
+  }
+
   return argv[key];
-}
+};
 
-
-// --- private
-
-// lookup methods
 // use same letters as lookup order string
-var lookup =
-{
+lookup = {
   // defaults
   D: envar.default,
 
@@ -201,4 +231,4 @@ var lookup =
 
   // argv/cli options
   A: envar.arg
-}
+};

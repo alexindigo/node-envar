@@ -1,11 +1,19 @@
-# EnVar [![Build Status](https://travis-ci.org/alexindigo/node-envar.png?branch=master)](https://travis-ci.org/alexindigo/node-envar) [![Dependency Status](https://gemnasium.com/alexindigo/node-envar.png)](https://gemnasium.com/alexindigo/node-envar)
+# envar [![NPM Module](https://img.shields.io/npm/v/envar.svg?style=flat)](https://www.npmjs.com/package/envar)
 
-Goes as high as environment (including npm config) and as low as command line options to find variable you've requested.
+Library to read environment variables, including npm package config, custom config file, command line and default object.
+
+[![Linux Build](https://img.shields.io/travis/alexindigo/node-envar/master.svg?label=linux:0.10-5.x&style=flat)](https://travis-ci.org/alexindigo/node-envar)
+[![Windows Build](https://img.shields.io/appveyor/ci/alexindigo/node-envar/master.svg?label=windows:0.10-5.x&style=flat)](https://ci.appveyor.com/project/alexindigo/node-envar)
+
+[![Coverage Status](https://img.shields.io/coveralls/alexindigo/node-envar/master.svg?label=code+coverage&style=flat)](https://coveralls.io/github/alexindigo/node-envar?branch=master)
+[![Dependency Status](https://img.shields.io/david/alexindigo/node-envar.svg?style=flat)](https://david-dm.org/alexindigo/node-envar)
+
+[![bitHound Overall Score](https://www.bithound.io/github/alexindigo/node-envar/badges/score.svg)](https://www.bithound.io/github/alexindigo/node-envar)
 
 ## Install
 
 ```
-$ npm install envar
+$ npm install --save envar
 ```
 
 ## Usage
@@ -13,12 +21,14 @@ $ npm install envar
 ### Basic
 
 Add some environment variables
+
 ```bash
 $ export user=my_account
 $ export pass=my_secret
 ```
 
 Run node script with custom port
+
 ```bash
 $ node ./my_project.js --port 8080
 ```
@@ -208,19 +218,43 @@ envar.env('port'); // will fetch data directly from `environment variables` laye
 envar.arg('port'); // will fetch data directly from `argv/cli` layer
 ```
 
-Note: All direct layer access methods, except ```envar.arg```, can be used to override/assign values.
+Note: All direct layer access methods, can be used to override/assign values.
+
+Note 2: ```envar.arg``` and ```envar.npm``` coerce all values into strings, because of the way node interacts with the process's environment.
 
 ```javascript
 var envar = require('envar');
 
 envar.env('test'); // -> undefined
 
-envar.env('test', 'ok'); // -> 'ok'
+envar.env('test', 25); // -> '25'
 
-envar.env('test'); // -> 'ok'
+envar.env('test'); // -> '25'
 
-process.env['test']; // -> 'ok'
+process.env['test']; // -> '25'
 ```
+
+Note 3: `undefined` has special meaning within ```envar.arg``` and ```envar.npm```, it removes corresponding key from the environment variables, to prevent it coercing into a string (i.e. `undefined -> 'undefined'`).
+
+```javascript
+var envar = require('envar');
+
+envar('test'); // -> undefined
+
+envar.env('test', 'me env'); // -> 'me env'
+envar.default('test', 'me default'); // -> 'me default'
+envar('test'); // -> 'me env'
+
+envar.env('test', undefined); // -> undefined
+envar('test'); // -> 'me default'
+
+envar.default('test', undefined); // -> undefined
+envar('test'); // -> undefined
+```
+
+## History
+
+History of the project could be found in  [CHANGELOG.md](CHANGELOG.md).
 
 ## TODO
 
@@ -229,3 +263,7 @@ process.env['test']; // -> 'ok'
 - Add config file watch
 - Add config file save
 - Add npm config save
+
+## License
+
+EnVar is licensed under the MIT license.

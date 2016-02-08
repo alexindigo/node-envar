@@ -1,4 +1,4 @@
-*.sublime-*
-/node_modules/
-/test/tmp
-/sftp-config.json
+coverage
+node_modules
+
+*.log
