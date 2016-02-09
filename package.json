@@ -1,6 +1,6 @@
 {
   "name": "envar",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Library to read environment variables, including npm package config, custom config file, command line and default object",
   "main": "index.js",
   "scripts": {
@@ -49,6 +49,6 @@
     "eslint": "^1.10.3",
     "istanbul": "^0.4.2",
     "pre-commit": "^1.1.2",
-    "tap": "^5.4.2"
+    "tap": "^5.4.3"
   }
 }
