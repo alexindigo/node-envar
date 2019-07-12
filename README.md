@@ -2,15 +2,22 @@
 
 Library to read environment variables, including npm package config, custom config file, command line and default object.
 
-[![Linux Build](https://img.shields.io/travis/alexindigo/node-envar/master.svg?label=linux:0.10-5.x&style=flat)](https://travis-ci.org/alexindigo/node-envar)
-[![Windows Build](https://img.shields.io/appveyor/ci/alexindigo/node-envar/master.svg?label=windows:0.10-5.x&style=flat)](https://ci.appveyor.com/project/alexindigo/node-envar)
+[![Linux Build](https://img.shields.io/travis/alexindigo/node-envar/master.svg?label=linux:4-12.x&style=flat)](https://travis-ci.org/alexindigo/node-envar)
+[![MacOS Build](https://img.shields.io/travis/alexindigo/node-envar/master.svg?label=macos:4-12.x&style=flat)](https://travis-ci.org/alexindigo/node-envar)
+[![Windows Build](https://img.shields.io/travis/alexindigo/node-envar/master.svg?label=windows:4-12.x&style=flat)](https://travis-ci.org/alexindigo/node-envar)
 
 [![Coverage Status](https://img.shields.io/coveralls/alexindigo/node-envar/master.svg?label=code+coverage&style=flat)](https://coveralls.io/github/alexindigo/node-envar?branch=master)
 [![Dependency Status](https://img.shields.io/david/alexindigo/node-envar.svg?style=flat)](https://david-dm.org/alexindigo/node-envar)
 
-[![bitHound Overall Score](https://www.bithound.io/github/alexindigo/node-envar/badges/score.svg)](https://www.bithound.io/github/alexindigo/node-envar)
-
 ## Install
+
+### yarn
+
+```
+$ yarn add envar
+```
+
+### npm
 
 ```
 $ npm install --save envar

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint index.js",
+    "ci-lint": "is-node-modern 8 && npm run lint || is-node-not-modern 8",
     "debug": "node test.js --test ok",
     "test": "istanbul cover test.js -- --test ok",
     "posttest": "istanbul check-coverage"
@@ -40,15 +41,15 @@
     "url": "https://github.com/alexindigo/node-envar/issues"
   },
   "dependencies": {
-    "deeply": "^1.0.0",
+    "deeply": "^3.1.0",
     "minimist": "^1.2.0"
   },
   "devDependencies": {
-    "codecov": "^1.0.1",
-    "coveralls": "^2.11.6",
-    "eslint": "^1.10.3",
-    "istanbul": "^0.4.2",
-    "pre-commit": "^1.1.2",
-    "tap": "^5.4.3"
+    "coveralls": "^3.0.5",
+    "eslint": "^6.0.1",
+    "is-node-modern": "^1.0.0",
+    "istanbul": "^0.4.5",
+    "pre-commit": "^1.2.2",
+    "tap": "^14.4.1"
   }
 }
