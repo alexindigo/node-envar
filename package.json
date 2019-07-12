@@ -7,8 +7,7 @@
     "lint": "eslint index.js",
     "ci-lint": "is-node-modern 8 && npm run lint || is-node-not-modern 8",
     "debug": "node test.js --test ok",
-    "test": "istanbul cover test.js -- --test ok",
-    "posttest": "istanbul check-coverage"
+    "test": "nyc --reporter=lcov --reporter=text-summary node test.js --test ok"
   },
   "pre-commit": [
     "lint",
@@ -48,7 +47,7 @@
     "coveralls": "^3.0.5",
     "eslint": "^6.0.1",
     "is-node-modern": "^1.0.0",
-    "istanbul": "^0.4.5",
+    "nyc": "^14.1.1",
     "pre-commit": "^1.2.2",
     "tap": "^14.4.1"
   }
